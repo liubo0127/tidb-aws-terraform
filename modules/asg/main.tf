@@ -79,6 +79,15 @@ resource "aws_security_group_rule" "allow-tikv-20160-connections" {
   security_group_id = "${aws_security_group.tikv.id}"
 }
 
+resource "aws_security_group_rule" "allow-tikv-20180-connections" {
+  type              = "ingress"
+  from_port         = 20180
+  to_port           = 20180
+  protocol          = "TCP"
+  cidr_blocks       = ["10.0.0.0/16"]
+  security_group_id = "${aws_security_group.tikv.id}"
+}
+
 resource "aws_security_group" "pd" {
   name   = "pingcap-tidb-pd-securitygroup"
   vpc_id = "${var.aws_vpc_id}"
@@ -160,24 +169,6 @@ resource "aws_security_group_rule" "allow-monitor-tidb-connections" {
   security_group_id = "${aws_security_group.monitor.id}"
 }
 
-resource "aws_security_group_rule" "allow-monitor-blackbox-connections" {
-  type              = "ingress"
-  from_port         = 9115
-  to_port           = 9115
-  protocol          = "TCP"
-  cidr_blocks       = ["10.0.0.0/16"]
-  security_group_id = "${aws_security_group.monitor.id}"
-}
-
-resource "aws_security_group_rule" "allow-monitor-tikv-connections" {
-  type              = "ingress"
-  from_port         = 20080
-  to_port           = 20080
-  protocol          = "TCP"
-  cidr_blocks       = ["10.0.0.0/16"]
-  security_group_id = "${aws_security_group.monitor.id}"
-}
-
 resource "aws_security_group" "intranet" {
   name   = "pingcap-tidb-intranet-securitygroup"
   vpc_id = "${var.aws_vpc_id}"
@@ -200,6 +191,15 @@ resource "aws_security_group_rule" "allow-intranet-node-exporter-connections" {
   type              = "ingress"
   from_port         = 9100
   to_port           = 9100
+  protocol          = "TCP"
+  cidr_blocks       = ["10.0.0.0/16"]
+  security_group_id = "${aws_security_group.intranet.id}"
+}
+
+resource "aws_security_group_rule" "allow-intranet-node-exporter-connections" {
+  type              = "ingress"
+  from_port         = 9115
+  to_port           = 9115
   protocol          = "TCP"
   cidr_blocks       = ["10.0.0.0/16"]
   security_group_id = "${aws_security_group.intranet.id}"
