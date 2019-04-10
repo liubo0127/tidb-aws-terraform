@@ -37,11 +37,6 @@ tidb_servers
 deploy_dir = /home/ec2-user/deploy
 
 ## Connection
-# ssh via root:
-# ansible_user = root
-# ansible_become = true
-# ansible_become_user = tidb
-
 # ssh via normal user
 ansible_user = ec2-user
 
@@ -56,7 +51,7 @@ timezone = America/Los_Angeles
 
 enable_firewalld = False
 # check NTP service
-enable_ntpd = True
+enable_ntpd = False
 set_hostname = False
 
 ## binlog trigger

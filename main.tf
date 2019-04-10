@@ -282,4 +282,45 @@ resource "null_resource" "bastion-inventory" {
       host        = "${aws_eip.bastion.public_ip}"
     }
   }
+
+  provisioner "file" {
+    source      = "templates/all.yml"
+    destination = "/home/ec2-user/tidb-ansible/group_vars/all.yml"
+
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = "${module.ssh-key.private_key_pem}"
+      host        = "${aws_eip.bastion.public_ip}"
+    }
+  }
+
+  provisioner "file" {
+    source      = "templates/main.yml"
+    destination = "/home/ec2-user/tidb-ansible/roles/tikv/tasks/main.yml"
+
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = "${module.ssh-key.private_key_pem}"
+      host        = "${aws_eip.bastion.public_ip}"
+    }
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "cd /home/ec2-user/tidb-ansible/",
+      "ansible-playbook local_prepare.yml",
+      "ansible-playbook bootstrap.yml",
+      "ansible-playbook deploy.yml",
+      "ansible-playbook start.yml",
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = "${module.ssh-key.private_key_pem}"
+      host        = "${aws_eip.bastion.public_ip}"
+    }
+  }
 }
