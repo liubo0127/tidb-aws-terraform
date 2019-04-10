@@ -196,7 +196,7 @@ resource "aws_security_group_rule" "allow-intranet-node-exporter-connections" {
   security_group_id = "${aws_security_group.intranet.id}"
 }
 
-resource "aws_security_group_rule" "allow-intranet-node-exporter-connections" {
+resource "aws_security_group_rule" "allow-intranet-blackbox-connections" {
   type              = "ingress"
   from_port         = 9115
   to_port           = 9115
