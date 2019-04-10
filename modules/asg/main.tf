@@ -151,6 +151,33 @@ resource "aws_security_group_rule" "allow-monitor-grafana-collector" {
   security_group_id = "${aws_security_group.monitor.id}"
 }
 
+resource "aws_security_group_rule" "allow-monitor-tidb-connections" {
+  type              = "ingress"
+  from_port         = 10080
+  to_port           = 10080
+  protocol          = "TCP"
+  cidr_blocks       = ["10.0.0.0/16"]
+  security_group_id = "${aws_security_group.monitor.id}"
+}
+
+resource "aws_security_group_rule" "allow-monitor-blackbox-connections" {
+  type              = "ingress"
+  from_port         = 9115
+  to_port           = 9115
+  protocol          = "TCP"
+  cidr_blocks       = ["10.0.0.0/16"]
+  security_group_id = "${aws_security_group.monitor.id}"
+}
+
+resource "aws_security_group_rule" "allow-monitor-tikv-connections" {
+  type              = "ingress"
+  from_port         = 20080
+  to_port           = 20080
+  protocol          = "TCP"
+  cidr_blocks       = ["10.0.0.0/16"]
+  security_group_id = "${aws_security_group.monitor.id}"
+}
+
 resource "aws_security_group" "intranet" {
   name   = "pingcap-tidb-intranet-securitygroup"
   vpc_id = "${var.aws_vpc_id}"

@@ -1,3 +1,4 @@
+## TiDB Cluster Part
 [tidb_servers]
 ${list_tidb}
 
@@ -8,24 +9,32 @@ ${list_tikv}
 ${list_pd}
 
 [spark_master]
+
 [spark_slaves]
 
+[lightning_server]
+
+[importer_server]
+
+## Monitoring Part
+# prometheus and pushgateway servers
 [monitoring_servers]
 ${list_monitor}
 
 [grafana_servers]
 ${list_monitor}
 
-[monitored_servers:children]
-tidb_servers
-tikv_servers
-pd_servers
-spark_master
-spark_slaves
+# node_exporter and blackbox_exporter servers
+[monitored_servers]
+${list_tidb}
+${list_tikv}
+${list_pd}
+${list_monitor}
+
+[alertmanager_servers]
 
 ## Binlog Part
-[pump_servers:children]
-tidb_servers
+[pump_servers]
 
 [drainer_servers]
 
