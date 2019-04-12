@@ -2,13 +2,14 @@
 Handy terraform scripts for running TiDB on AWS
 
 ### Quick Start
-1. git clone this project，and execute `terraform init`
-2. modify variables.tf, fill with your aws_access_key and aws_secret_key, and the cluster topology
-3. execute `terraform plan`
-4. Make sure terraform generates right plan, and execute `terraform apply`
-5. After Step 4, you can see the public IP of relay-server，ssh to the replay-server, the tidb-ansible directory will be on /home/ec2-user/tidb-ansible
-6. find `# ssh_args = -i aws.key -C -o ControlMaster=auto -o ControlPersist=60s`, remove the comment mark, and deploy tidb using tidb-ansible.
-7. execute `terraform destroy` to destroy all resources when you do not need to use these resources
+1. Download and install terraform(https://www.terraform.io/downloads.html)
+2. git clone this project，and execute `terraform init`
+3. modify variables.tf, fill with the cluster topology
+4. execute `terraform plan`, enter the access key and secret key as prompted
+5. Make sure terraform generates right plan, and execute `terraform apply`, enter the access key and secret key as prompted
+6. After Step 4, you can see the public IP of relay-server，ssh to the replay-server, the tidb-ansible directory will be on /home/ec2-user/tidb-ansible
+7. Filter the `dns_name` keyword in the `terraform.tfstate` file to find the dns_name for tidb and monitor respectively.
+8. execute `terraform destroy` to destroy all resources when you do not need to use these resources
 
 ### Resource Overview
 1. Deploy region
