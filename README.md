@@ -8,7 +8,7 @@ Handy terraform scripts for running TiDB on AWS
 4. execute `terraform plan`, enter the access key and secret key as prompted
 5. Make sure terraform generates right plan, and execute `terraform apply`, enter the access key and secret key as prompted
 6. After Step 4, you can see the public IP of relay-server，ssh to the replay-server, the tidb-ansible directory will be on /home/ec2-user/tidb-ansible
-7. Filter the `dns_name` keyword in the `terraform.tfstate` file to find the dns_name for tidb and monitor respectively.
+7. Filter the `dns_name` keyword in the `terraform.tfstate` file to find the dns_name for tidb and monitor respectively
 8. execute `terraform destroy` to destroy all resources when you do not need to use these resources
 
 ### Resource Overview
