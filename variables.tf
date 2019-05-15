@@ -82,3 +82,9 @@ variable "pd_count" {
 	description = "The numble of the pd instances to be deployed"
 	default = "3"
 }
+
+variable "tidb_version" {
+	type = "string"
+	description = "The version of the tidb cluster"
+	default = "v3.0.0-rc.1"
+}

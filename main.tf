@@ -125,7 +125,7 @@ resource "null_resource" "bastion-init" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/init_bastion.sh",
-      "/tmp/init_bastion.sh ec2-user"
+      "/tmp/init_bastion.sh ec2-user ${var.tidb_version}"
     ]
 
     connection {
@@ -223,23 +223,12 @@ resource "aws_eip_association" "eip_assoc" {
 }
 
 data "template_file" "inventory" {
-  template = "${file("${path.module}/templates/inventory.tpl")}"
 
   vars {
-    list_tidb    = "${join("\n",aws_instance.tidb.*.private_ip)}"
-    list_tikv    = "${join("\n",aws_instance.tikv.*.private_ip)}"
-    list_pd      = "${join("\n",aws_instance.pd.*.private_ip)}"
-    list_monitor = "${join("\n",aws_instance.monitor.*.private_ip)}"
-  }
-}
-
-resource "null_resource" "inventories" {
-  triggers {
-    template = "${data.template_file.inventory.rendered}"
-  }
-
-  provisioner "local-exec" {
-    command = "echo '${data.template_file.inventory.rendered}' > ./inventory.ini"
+    list_tidb    = "${join(",",aws_instance.tidb.*.private_ip)}"
+    list_tikv    = "${join(",",aws_instance.tikv.*.private_ip)}"
+    list_pd      = "${join(",",aws_instance.pd.*.private_ip)}"
+    list_monitor = "${join(",",aws_instance.monitor.*.private_ip)}"
   }
 }
 
@@ -263,41 +252,12 @@ resource "null_resource" "ssh-bastion" {
   }
 }
 
-resource "null_resource" "bastion-inventory" {
+resource "null_resource" "bastion-ansible" {
   depends_on = ["null_resource.bastion-init"]
 
-  # Changes to any instance of the bastion requires re-provisioning
-  triggers {
-    template = "${data.template_file.inventory.rendered}"
-  }
-
   provisioner "file" {
-    source      = "inventory.ini"
-    destination = "/home/ec2-user/tidb-ansible/inventory.ini"
-
-    connection {
-      type        = "ssh"
-      user        = "ec2-user"
-      private_key = "${module.ssh-key.private_key_pem}"
-      host        = "${aws_eip.bastion.public_ip}"
-    }
-  }
-
-  provisioner "file" {
-    source      = "templates/all.yml"
-    destination = "/home/ec2-user/tidb-ansible/group_vars/all.yml"
-
-    connection {
-      type        = "ssh"
-      user        = "ec2-user"
-      private_key = "${module.ssh-key.private_key_pem}"
-      host        = "${aws_eip.bastion.public_ip}"
-    }
-  }
-
-  provisioner "file" {
-    source      = "templates/main.yml"
-    destination = "/home/ec2-user/tidb-ansible/roles/tikv/tasks/main.yml"
+    source      = "scripts/init_ansible.sh"
+    destination = "/tmp/init_ansible.sh"
 
     connection {
       type        = "ssh"
@@ -309,11 +269,84 @@ resource "null_resource" "bastion-inventory" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/init_ansible.sh",
+      "/tmp/init_ansible.sh ${data.template_file.inventory.vars.list_tidb} ${data.template_file.inventory.vars.list_tikv} ${data.template_file.inventory.vars.list_pd} ${data.template_file.inventory.vars.list_monitor}"
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = "${module.ssh-key.private_key_pem}"
+      host        = "${aws_eip.bastion.public_ip}"
+    }
+  }
+}
+
+resource "null_resource" "bastion-local-prepare" {
+  depends_on = ["null_resource.bastion-ansible"]
+
+  provisioner "remote-exec" {
+    inline = [
       "cd /home/ec2-user/tidb-ansible/",
       "ansible-playbook local_prepare.yml",
+      "sleep 10",
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = "${module.ssh-key.private_key_pem}"
+      host        = "${aws_eip.bastion.public_ip}"
+    }
+  }
+}
+
+resource "null_resource" "bastion-bootstrap" {
+  depends_on = ["null_resource.bastion-local-prepare"]
+
+  provisioner "remote-exec" {
+    inline = [
+      "cd /home/ec2-user/tidb-ansible/",
       "ansible-playbook bootstrap.yml",
+      "sleep 10",
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = "${module.ssh-key.private_key_pem}"
+      host        = "${aws_eip.bastion.public_ip}"
+    }
+  }
+}
+
+resource "null_resource" "bastion-deploy" {
+  depends_on = ["null_resource.bastion-bootstrap"]
+
+  provisioner "remote-exec" {
+    inline = [
+      "cd /home/ec2-user/tidb-ansible/",
       "ansible-playbook deploy.yml",
+      "sleep 10",
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = "${module.ssh-key.private_key_pem}"
+      host        = "${aws_eip.bastion.public_ip}"
+    }
+  }
+}
+
+resource "null_resource" "bastion-start" {
+  depends_on = ["null_resource.bastion-deploy"]
+
+  provisioner "remote-exec" {
+    inline = [
+      "cd /home/ec2-user/tidb-ansible/",
       "ansible-playbook start.yml",
+      "sleep 10",
     ]
 
     connection {
